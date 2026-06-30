@@ -21,23 +21,23 @@ endif
 
 include ../../.env
 
-DOCKER_PLTF="KAFKA 3"
+DOCKER_PLTF="KAFKA 3.9"
 DOCKER_LEAD=$(PROJECT_LEAD)
 DOCKER_CNET=$(PROJECT_CNET)
 DOCKER_HOST=$(PROJECT_HOST)
 DOCKER_IMGK=$(BROKER_IMGK)
 DOCKER_PORT_PTEXT=$(BROKER_PORT_PTEXT)
 DOCKER_PORT_CNTRL=$(BROKER_PORT_CNTRL)
-DOCKER_BIND=$(BROKER_BIND)
+DOCKER_DATA=$(BROKER_DATA)
+DOCKER_LOGS=$(BROKER_LOGS)
 DOCKER_CAAS=$(BROKER_CAAS)
 DOCKER_CPUS=$(BROKER_CAAS_CPUS)
 DOCKER_MEM=$(BROKER_CAAS_MEM)
 DOCKER_SWAP=$(BROKER_CAAS_SWAP)
+DOCKER_APP_IMGK=$(BROKER_APP_IMGK)
 DOCKER_APP_PORT=$(BROKER_APP_PORT)
 DOCKER_APP_USER=$(BROKER_APP_USER)
 DOCKER_APP_PASS=$(BROKER_APP_PASS)
-DOCKER_APP_COOKIE=$(BROKER_APP_COOKIE)
-DOCKER_APP_NODENAME=$(BROKER_APP_NODENAME)
 
 ROOT_DIR=$(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 DIR_BASENAME=$(shell basename $(ROOT_DIR))
@@ -86,22 +86,22 @@ env-set: ## sets docker .env file
 ifeq ($(DETECTED_OS), Windows)
 	echo "Recipe do not support for Windows NT at this moment - You have to manually create .env file from ./docker/.env.example";
 else
-	echo "COMPOSE_PROJECT_LEAD=\"$(DOCKER_LEAD)\"\r\n\
-	COMPOSE_PROJECT_CNET=\"$(DOCKER_CNET)\"\r\n\
-	COMPOSE_PROJECT_IMGK=\"$(DOCKER_IMGK)\"\r\n\
-	COMPOSE_PROJECT_HOST=$(DOCKER_HOST)\r\n\
-	COMPOSE_PROJECT_PTEXT=$(DOCKER_PORT_PTEXT)\r\n\
-	COMPOSE_PROJECT_PCTRL=$(DOCKER_PORT_CNTRL)\r\n\
-	COMPOSE_PROJECT_PATH=\"$(DOCKER_BIND)\"\r\n\
-	COMPOSE_PROJECT_NAME=\"$(DOCKER_CAAS)\"\r\n\
-	COMPOSE_PROJECT_CPUS=$(DOCKER_CPUS)\r\n\
-	COMPOSE_PROJECT_MEM=$(DOCKER_MEM)\r\n\
-	COMPOSE_PROJECT_SWAP=$(DOCKER_SWAP)\r\n\
-	COMPOSE_PROJECT_APP_PORT=\"$(DOCKER_APP_PORT)\"\r\n\
-	COMPOSE_PROJECT_APP_USER=\"$(DOCKER_APP_USER)\"\r\n\
-	COMPOSE_PROJECT_APP_PASS=\"$(DOCKER_APP_PASS)\"\r\n\
-	COMPOSE_PROJECT_APP_COOKIE=\"$(DOCKER_APP_COOKIE)\"\r\n\
-	COMPOSE_PROJECT_APP_NODENAME=\"$(DOCKER_APP_NODENAME)\"" > ./docker/.env; \
+	echo "COMPOSE_LEAD=\"$(DOCKER_LEAD)\"\r\n\
+	COMPOSE_CNET=\"$(DOCKER_CNET)\"\r\n\
+	COMPOSE_IMGK=\"$(DOCKER_IMGK)\"\r\n\
+	COMPOSE_HOST=$(DOCKER_HOST)\r\n\
+	COMPOSE_PORT_PTEXT=$(DOCKER_PORT_PTEXT)\r\n\
+	COMPOSE_PORT_PCTRL=$(DOCKER_PORT_CNTRL)\r\n\
+	COMPOSE_DATA=\"$(DOCKER_DATA)\"\r\n\
+	COMPOSE_LOGS=\"$(DOCKER_LOGS)\"\r\n\
+	COMPOSE_NAME=\"$(DOCKER_CAAS)\"\r\n\
+	COMPOSE_CPUS=$(DOCKER_CPUS)\r\n\
+	COMPOSE_MEM=$(DOCKER_MEM)\r\n\
+	COMPOSE_SWAP=$(DOCKER_SWAP)\r\n\
+	COMPOSE_APP_IMGK=\"$(DOCKER_APP_IMGK)\"\r\n\
+	COMPOSE_APP_PORT=$(DOCKER_APP_PORT)\r\n\
+	COMPOSE_APP_USER=\"$(DOCKER_APP_USER)\"\r\n\
+	COMPOSE_APP_PASS=\"$(DOCKER_APP_PASS)\"" > ./docker/.env; \
 	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" MESSAGE BROKER "${C_YEL}$(DOCKER_PLTF)${C_END}" - "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"has been set."${C_END};
 	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" MESSAGE BROKER "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container: "${C_GRN}$(DOCKER_CONTAINER)${C_END}
 	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" MESSAGE BROKER "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. CPUs: "${C_GRN}$(DOCKER_CPUS)${C_END}
@@ -141,22 +141,23 @@ network: ## starts up into an existing custom network for container-to-container
 	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml -f docker-compose.client.yml -f docker-compose.client.network.yml up -d
 
 start: ## starts the container and put on running
-	cd docker && $(DOCKER_COMPOSE) start
+	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.client.yml start
 
 stop: ## stops the running container but data won't be destroyed
-	cd docker && $(DOCKER_COMPOSE) stop
+	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.client.yml stop
 
 restart: ## restarts the running container
 	cd docker && $(DOCKER) restart $(DOCKER_CONTAINER)
 
 clear: ## removes container from Docker running containers
-	cd docker && $(DOCKER_COMPOSE) kill || true
-	cd docker && $(DOCKER_COMPOSE) rm --force || true
-	cd docker && $(DOCKER_COMPOSE) down -v --remove-orphans || true
+	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.client.yml kill || true
+	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.client.yml rm --force || true
+	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.client.yml down -v --remove-orphans || true
 
 destroy: ## delete container image from Docker cache
-	cd docker && $(DOCKER) rmi -f $(DOCKER_CONTAINER):$(DOCKER_IMGK)
-	cd docker && $(SUDO) rm -rf ./data ./log
+	cd docker && $(DOCKER) rmi -f $(DOCKER_IMGK)
+	cd docker && $(DOCKER) rmi -f $(DOCKER_APP_IMGK)
+	cd docker && $(SUDO) rm -rf $(DOCKER_DATA) $(DOCKER_LOGS)
 
 dev: ## sets a development enviroment
 	echo ${C_YEL}"\"dev\" recipe has not usage in this project"${C_END};

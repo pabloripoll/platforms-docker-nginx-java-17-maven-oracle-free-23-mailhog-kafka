@@ -2,7 +2,7 @@ services:
 
   kafka:
     image: apache/kafka:3.9.2   # Official Apache Kafka image
-    container_name: ${COMPOSE_PROJECT_LEAD}-${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_LEAD}-${COMPOSE_NAME}
     environment:
       # KRaft single-node
       KAFKA_NODE_ID: 1
@@ -10,7 +10,7 @@ services:
       # Bind inside container to all interfaces
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       # Advertise to clients on the Docker host (use host IP or localhost if clients run on the host)
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${COMPOSE_PROJECT_PTEXT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${COMPOSE_PORT_PTEXT}
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
@@ -25,8 +25,8 @@ services:
       # where Kafka stores data in the container
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     #volumes:
-    #  - ./data:/var/lib/kafka/data        # Persist data between restarts
-    #  - ./log:/var/log/kafka
+    #  - ${COMPOSE_PORT_DATA}:/var/lib/kafka/data        # Persist data between restarts
+    #  - ${COMPOSE_PORT_LOGS}:/var/log/kafka
     restart: unless-stopped
 
 volumes:
