@@ -219,7 +219,7 @@ Repository directories structure overview
 │   │   │   └── Dockerfile
 │   │   └── Makefile
 │   │
-│   ├── postgre-16
+│   ├── oracle-free-23
 │   │   ├── docker
 │   │   │   ├── .env
 │   │   │   ├── docker-compose.yml
@@ -233,7 +233,7 @@ Repository directories structure overview
 │   │   │   └── ...etc
 │   │   └── Makefile
 │   │
-│   └── rabbitmq-4.2
+│   └── kafka-3.9
 │       ├── docker
 │       │   ├── .env
 │       │   ├── docker-compose.yml
