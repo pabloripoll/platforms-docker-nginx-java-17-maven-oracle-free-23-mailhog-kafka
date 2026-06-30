@@ -15,36 +15,59 @@
 ![Alpine Linux](https://img.shields.io/badge/Alpine_Linux-%230D597F.svg?style=for-the-badge&logo=alpine-linux&logoColor=white)
 ![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white)
 
-### Docker Compose with Kafka (Lightweight Setup)
-
-No a Dockerfile for Kafka. You can use an official pre-built image directly in docker-compose.yml. The lightest option for local development is Bitnami's Kafka image (or apache/kafka since Kafka 3.3+ supports KRaft mode, eliminating the need for Zookeeper entirely).
-
-### Recommended: KRaft Mode (No Zookeeper — lightest setup)
-
-Using the official apache/kafka image in KRaft mode removes the Zookeeper dependency, saving significant memory and CPU.
-
-### Kafka UI
-
-Kafka does NOT come with a built-in UI as it is purely CLI/API-based by default.
-
-### Popular UI Options (add as a second service)
-
-Here are the most popular choices, ranked by ease of use + lightweight:
-
-- **Kafka UI** (by Provectus): General purpose, most popular.
-- **Redpanda Console**: Clean UI - easy setup.
-- **AKHQ**:	JVM-based - Advanced management.
-- **Confluent Control Center**: By suscription - Enterprise only.
-
 Content:
 - Linux Alpine 3.23
 - Apache Kafka
+    - Docker Compose with Kafka - KRaft Mode (No Zookeeper — lightest setup)
+    - Bitnami's Kafka image (or apache/kafka since Kafka 3.3+ supports KRaft mode, eliminating the need for Zookeeper entirely)
+    - Using the official apache/kafka image in KRaft mode removes the Zookeeper dependency, saving significant memory and CPU.
 - Kafka UI by Provectus
+    - Kafka does NOT come with a built-in UI as it is purely CLI/API-based by default.
+    - Here are the most popular choices, ranked by ease of use + lightweight:
+        - **Kafka UI** (by Provectus): General purpose, most popular.
+        - **Redpanda Console**: Clean UI - easy setup.
+        - **AKHQ**:	JVM-based - Advanced management.
+        - **Confluent Control Center**: By suscription - Enterprise only.
 <br><br>
 
 Sources:
 - https://kafka.apache.org/
 - https://github.com/provectus/kafka-ui
+<br><br>
+
+## Kafka Ports
+
+In Apache Kafka, port 9092 is the default port used for plaintext (non-TLS) client communication, while port 9093 is commonly designated for SSL/TLS encrypted communication or Control-Plane traffic.
+
+For comprehensive documentation on configuring your listeners and protocols, review the official Apache [Kafka Listener Configuration](https://kafka.apache.org/39/security/listener-configuration/) guide.
+
+### Container Port 9092: Plaintext Client Traffic
+
+- <b>Primary Role</b>: The standard, out-of-the-box port for Kafka clients (producers and consumers) to connect to the broker, publish data, and read streams.
+
+- <b>Data Transmission</b>: Data sent across this port is in cleartext. It does not provide encryption or secure authentication, making it suitable for development environments or trusted, isolated internal networks.
+
+- <b>Usage</b>: Typically configured as the `PLAINTEXT://` listener in your `server.properties` file.
+
+### Container Port 9093: SSL/TLS or Control-Plane Traffic
+
+- <b>Encryption/Security</b>: In standard client-broker setups, 9093 is conventionally configured as the secure listener for <b>SSL/TLS encryption</b> (often defined as `SSL://`). This ensures that data in transit across the network is securely encrypted.
+
+- <b>Internal Control Plane</b>: In modern Kafka architectures utilizing KRaft (Kafka Raft) without ZooKeeper, <b>port 9093 is often designated for Control-Plane traffic</b>. This handles communication between the KRaft controllers (which manage cluster metadata) and the brokers.
+
+### Network & Port Configuration
+
+This container uses fixed internal ports for its services, but you can freely customize the local (host) ports on your machine to avoid conflicts or hiding ports.
+
+How Port Mapping Works? The containerized applications always listen on their standard, hardcoded internal ports. When starting the container, you map your preferred local ports to these internal destination ports (`-p <local_port>:<container_port>`).
+
+#### Connecting to Kafka from your Local Machine
+
+When writing your local application code or configuring your producers/consumers, you must target your custom local ports, not the container ports:
+```sh
+# Use your custom local port in your application code:
+bootstrap.servers=localhost:[your-custom-port]
+```
 <br><br>
 
 ## <a id="configuration"></a>Service Configuration
